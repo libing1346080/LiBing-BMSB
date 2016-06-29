@@ -1,0 +1,390 @@
+
+\documentclass[journal]{IEEEtran}
+\usepackage{graphicx}
+\usepackage{amssymb}
+\usepackage{indentfirst}
+\usepackage{threeparttable}
+\usepackage{booktabs}
+\usepackage{subfigure}
+%\usepackage[dvips]{graphicx}
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+%\usepackage{algorithm,algorithmic}
+\usepackage{multirow}
+\usepackage{booktabs}
+\usepackage{bm}
+\usepackage{float}
+\usepackage{enumerate}
+\ifCLASSINFOpdf
+\else
+\fi
+\hyphenation{op-tical net-works semi-conduc-tor}
+
+
+
+\usepackage{amsmath,amsthm,amssymb,amsfonts}
+\usepackage[linesnumbered,ruled,vlined]{algorithm2e}
+
+\newtheorem{definition}{Definition}
+
+
+
+\begin{document}
+
+\title{Multi-path Routing for Video Streaming in Multi-radio Multi-channel Wireless Mesh Networks}
+
+\author{\IEEEauthorblockN{Chenlei Pan\IEEEauthorrefmark{1}, Bo Liu\IEEEauthorrefmark{1}, Haibo Zhou\IEEEauthorrefmark{2} and Lin Gui\IEEEauthorrefmark{1}}\\
+\IEEEauthorblockA{\IEEEauthorrefmark{1}Dept. of Electronic Engineering, Shanghai Jiao Tong University, Shanghai, China\\
+\IEEEauthorrefmark{1}Email: \{363863991, liubo\_lb, guilin\}@sjtu.edu.cn\\
+\IEEEauthorrefmark{2}University of Waterloo, Canada. Email: h53zhou@uwaterloo.ca
+}
+%\author{\IEEEauthorblockN{Chenlei Pan, Bo Liu, and Lin Gui}\\
+%\IEEEauthorblockA{Department of Electronic Engineering, Shanghai Jiao Tong University, China} \\
+%Emails: \{363863991, liubo\_lb, guilin\}@sjtu.edu.cn\\
+%$^{^\star}$Department of Electrical and Computer Engineering, Utah State University, USA.\\
+%Email: rose.hu@usu.edu\\
+%$^{^\dagger}$Department of Computer and Electronics Engineering, University of Nebraska-Lincoln, USA.\\
+%Email: yi.qian@unl.edu\\
+%$^{\ddagger}$Communications Research Centre Canada.\\
+%Email: bo.rong.ieee@gmail.com
+%\and
+%\IEEEauthorblockN{xxx}
+%\IEEEauthorblockA{\\
+%xxxx \\
+%Email: xxxx}
+
+
+%{\IEEEauthorblockN{Hao Cai, Bo Liu}
+%\IEEEauthorblockA{Department of Electronic Engineering \\
+% Shanghai Jiaotong University, China \\
+% Email: caihao0727mail, liubo_lb@sjtu.edu.cn \\
+%}
+
+
+%\thanks{This work was supported in part by the Major State Basic Research
+%Development Program of China (973 Program) (No. 2009CB320403), National Natural Science Foundation of China (61201222), the 111 Project
+%(B07022) and the Shanghai Key Laboratory of Digital Media Processing and Transmissions. It was also partially supported by the funds of MIIT of China
+%(Grant No. 2011ZX03001-007-03), the Ministry of Railways technology research and development programs (J2011X005).}
+%\thanks{Bo Liu is the corresponding author.}
+}
+\maketitle
+
+
+
+\begin{abstract}
+Multi-radio multi-channel (MRMC) is a promising approach to relieve the overload caused by the explosive growth of video streaming traffic in wireless mesh networks. Previous studies have shown that in MRMC wireless mesh networks, network capacity can be increased significantly by proper design of channel assignment and routing algorithm. Multi-path routing can make good use of the network capacity improvement of MRMC wireless mesh networks. Multi-path routing has been applied in wired and wireless networks for load balancing or congestion control. However, it remains a challenge in MRMC wireless mesh networks. In this paper, we first discuss how to find multiple high-quality paths from source to destination while considering the interference between each other. Then we focus on the rate allocation among multiple paths and formulate it as a max-min problem which can be transformed to a linear programming (LP) problem. Finally, we propose a joint multi-path discovery and rate allocation algorithm. We evaluate this algorithm through simulations. Results show that our algorithm not only increases the network capacity, but also keeps the average end-to-end delay over all video streaming sessions at a low level.
+\end{abstract}
+
+\IEEEpeerreviewmaketitle
+
+
+%\begin{IEEEkeywords}
+%interest-based, information sharing, omnidirectional antenna, directional antenna
+%\end{IEEEkeywords}
+
+
+\section{Introduction}
+In recent years, video streaming applications have experienced rapid development. According to \cite{labovitz2011internet}, video streaming traffic accounts for a significant part of the Internet traffic and grows at a high speed. As a promising solution for providing Internet access to communities, wireless mesh networks (WMN) must take the increasing video streaming traffic into account. Previous work \cite{jain2005impact} has shown that interference among wireless links has significant influence on the network capacity of single-radio single-channel (SRSC) wireless networks.
+
+In order to improve network capacity, researchers have been studying on multi-radio multi-channel wireless mesh networks. Fortunately, the IEEE 802.11 standards provide multiple non-overlapping frequency channels, which allows wireless nodes equipped with multiple NICs to transmit packets over several non-overlapping channels simultaneously. Such bandwidth aggregation ability of multi-radio multi-channel wireless mesh networks can significantly increase the network capacity. In \cite{raniwala2005architecture}, the authors proposed one of the first IEEE 802.11-based multi-radio multi-channel wireless mesh network architectures. Their results have shown that with proper channel assignment and routing algorithms, the MRMC WMN can achieve great throughput improvement.
+
+Generally, video streaming applications have certain requirements such as sufficient bandwidth and low end-to-end delay to provide quality-of-service (QoS) performance. With the improvement of video quality, the video streaming applications require higher bandwidth. In conventional single-radio single-channel wireless mesh networks, it may become difficult to find a path to support the high bandwidth requirement of a video streaming traffic flow.
+
+However, in MRMC wireless mesh networks, the ability of simultaneous packet transmission through different interfaces operating on non-overlapping channels makes it feasible for routing through multiple paths without suffering from intra-flow and inter-flow interference. Such routing scheme is called multi-path routing. Multi-path routing has been applied in wired and wireless networks to perform congestion control or load balancing \cite{han2006multi} \cite{ganjali2004load}. However, in multi-radio multi-channel wireless networks, multi-path routing remains a challenge. In this paper, we focus on multi-path routing for video streaming in MRMC WMN.
+
+One major challenge of multi-path routing for video streaming in multi-radio multi-channel wireless mesh networks is to find multiple high-quality paths which can meet the bandwidth requirement of a traffic flow. In many multi-path routing protocols, the discovered multiple paths are vertex-disjoint or edge-disjoint. Vertex disjointness guarantees that any node failure affects only one path and edge disjointness makes sure that any link failure affects at most one path. However, due to wireless interference, even vertex-disjoint or edge-disjoint paths may still have links interfering with each other, causing performance degradation. Therefore, we have to take wireless interference into account when designing our multi-path routing algorithm.
+
+Another challenge is how to split the video streaming traffic among the discovered paths. Since there will be multiple concurrent video streaming sessions (We use ``flow'' and ``session'' alternately in this paper.) in the network and new sessions will keep flowing into the network, we must take fairness into consideration. When allocating rate among multiple paths, we should not be selfish and avoid allocating much traffic to a low-bandwidth link. A link which is highly utilized becomes a bottleneck link for sessions flowing through it and may become congested, causing the performance of sessions sharing this link to degrade. Therefore, congestion control should be achieved in rate allocation.
+
+In this paper, we divide our solution for the multi-path routing problem into two parts. Firstly, we design a greedy-based multi-path discovery algorithm, which finds multiple high-quality paths that can provide enough end-to-end bandwidth while taking wireless interference into consideration. Then, based on the paths discovered by our multi-path discovery algorithm, we solve the rate allocation problem by taking fairness into account. We formulate it as a max-min optimization problem and transform it to a linear programming (LP) problem. By combining multi-path discovery and rate allocation, our joint multi-path discovery and rate allocation algorithm can enable the network to support more concurrent video streaming sessions.
+
+The rest of the paper is organized as follows. We discuss related work in Section \ref{section: 2}. In Section \ref{section: 3}, we describe the system model and introduce the problem formulation. In Section \ref{section: 4}, we propose our joint multi-path discovery and rate allocation algorithm. In Section \ref{section: 5}, we present simulation results. Finally, we conclude the paper in Section \ref{section: 6}.
+
+
+\section{Related work}
+\label{section: 2}
+Previous studies of routing in multi-radio multi-channel wireless networks mainly focus on channel assignment \cite{raniwala2005architecture} \cite{tang2005interference} \cite{subramanian2008minimum} and single-path routing \cite{draves2004routing} or joint channel assignment and routing \cite{zhou2010distributed}. In this paper, we consider a multi-radio multi-channel network which is pre-configured using static channel assignment algorithms. This excludes channel assignment from our research. And compared with single-path routing, we focus on multi-path routing in a static network topology, so the main challenge is to find multiple high-quality paths while considering interference at the same time.
+
+In \cite{draves2004routing}, the WCETT routing metric was proposed for multi-radio multi-channel wireless networks. It is a commonly used metric to find a high-throughput path by accounting for the intra-flow interference. In this paper, we incorporate WCETT into our multi-path discovery algorithm.
+
+There have been several studies of video streaming in wireless networks. The authors in \cite{wei2009interference} tried to minimize the concurrent packet drop ratio of two paths. However, it is for single-channel wireless mesh networks, while we consider routing in multi-radio multi-channel networks. In \cite{ding2012multisource}, the authors studied multi-source multi-path video streaming in multi-radio multi-channel wireless mesh networks. They formulated the multi-path discovery into a \emph{Maximum Interference Disjoint Paths (MIDP)} problem. Their goal is to find multiple paths which do not interfere with each other. However, this solution may not be reasonable due to the restriction of the number of NICs equipped by each node. According to \emph{MIDP}, the number of paths that can be found has an upper bound, which is the number of interfaces of each node. Moreover, we consider single-source multi-path video streaming. In \cite{zhou2010distributed}, the authors proposed a distributed scheduling scheme for video streaming in multi-radio multi-channel wireless networks by jointly considering channel assignment, rate allocation and routing, which is complicated and hard to be implemented in practical networks. In contrast, our study focus on designing an algorithm which is simple and easy to be implemented .
+
+In a word, we study single-source single-destination multi-path routing for video streaming in multi-radio multi-channel WMN. We not only account for the wireless interference, but also take flexibility and feasibility into consideration.
+
+\section{system model and problem formulation}
+\label{section: 3}
+%\begin{figure}
+%\centering
+%\includegraphics[scale=0.4]{figure/1.pdf}
+%\hspace{1em}
+%\centering
+%\caption{Multi-path Routing for video streaming in WMN}
+%\label{system model}
+%\end{figure}
+%\subsection{System Model}
+
+In a multi-radio multi-channel wireless mesh network, each interface of each mesh router can be assigned with a channel based on channel assignment algorithms so that the network interference can be minimized while maintaining the network connectivity. Some mesh routers in the network play their role as gateways. They are directly connected to Internet, which means they can stream videos from external servers to users in the network. Another situation happens when users in the same wireless mesh network send video streaming sessions to each other.
+
+As illustrated in Fig. \ref{system model}, user $C$ requests a video streaming session from an external video streaming server through gateway $S2$, and user $A$ sends a session to user $B$. Therefore, two sessions $(S1, R1)$, $(S2, R2)$ need to be established. For each session, the results of multi-path routing are shown in Fig. \ref{system model}. Each session finds two paths and transmits packets through them simultaneously due to the bandwidth aggregation ability of MRMC WMN.
+
+Consider a wireless mesh network $G\left( {V,E} \right)$, where $V$ denotes the set of nodes and $E$ denotes the set of edges. An edge $(u,v) \in E$ if and only if $d(u,v) \le {R_T}$, where $d(u,v)$ denotes the Euclidean distance between nodes $u$ and $v$ and ${R_T}$ denotes the transmission range. All mesh routers are assumed to be stationary and their positions are prior knowledge, so that channel assignment can be completed accordingly.
+
+Assume each node is equipped with $Q$ IEEE 802.11 NICs and there are $K$ non-overlapping orthogonal channels available to be assigned to each interface. After the static channel assignment, the network topology can be determined, which is denoted as $G\left( {V,E'} \right)$. An edge $(u,v,c) \in E'$ if and only if $(u,v) \in E$ and $c \in C(u) \cap C(v)$, where $C(u)$ denotes the channels assigned to the interfaces of $u$. In this paper, we use $G\left( {V,E} \right)$ to denote the determined network topology after channel assignment for convenience.
+
+The protocol model \cite{jain2005impact} is used to determine whether two links interfere with each other. For two links ${e_i},{e_j} \in E$, they interfere with each other if and only if $c({e_i}) = c({e_j})$ and $d({e_i},{e_j}) \le {R_I}$, where $c(e)$ denotes the channel of link $e$, $d({e_i},{e_j})$ denotes the minimum Euclidean distance between any node of ${e_i}$ and any node of ${e_j}$ and ${R_I}$ denotes the interference range.
+
+In \cite{jain2005impact}, the authors introduced a conflict graph $G'\left( {V',E'} \right)$ to illustrate whether two links in the network topology interfere with each other. In this paper, we use a matrix ${\bf{C}}$ to represent the conflict graph, where ${e_i},{e_j}$ interfere with each other if ${\bf{C}}\left( {i,j} \right) = 1$ and ${e_i},{e_j}$ do not interfere with each other if ${\bf{C}}\left( {i,j} \right) = 0$.
+
+\subsection{Problem Formulation}
+Consider a video streaming session which is denoted as a source-destination node pair $(s,d)$ with a bandwidth requirement $D$. Our objective is to find multiple paths between source $s$ and destination $d$, which can satisfy the bandwidth requirement $D$. Since video streaming applications require high quality-of-service, we need to guarantee the quality of each path, so that the performance of the video session will not suffer from a bad path. We also need to keep the interference among the discovered multiple paths within a sustainable level, since inter-flow interference will significantly reduce the achievable throughput of multiple paths. After multiple paths have been discovered, we can split the session into multiple sub-flows and each sub-flow goes through a path.
+
+We use ${\bf{A}} = {\left[ {a\left( {{e_1}} \right),...,a\left( {{e_{\left| E \right|}}} \right)} \right]^T}$ to represent the available bandwidth of all links in the network, where ${a\left( {{e_i}} \right)}$ denotes the available bandwidth of ${e_i}$. Assume the multiple paths discovered for a session is $\mathbb{P} = \left\{ {{p_1},{p_2},...,{p_k}} \right\}$, the rate allocation is $\mathbb{R} = \left\{ {{r_1},{r_2},...,{r_k}} \right\}$, where ${r_i}$ denotes the rate allocated on ${p_i}$. Then, we have
+\begin{eqnarray} \label{eq1}
+\sum\limits_{i = 1,...,k} {{r_i}}  = D
+\end{eqnarray}
+
+Eq. \eqref{eq1} guarantees that the throughput of multiple paths can meet the bandwidth requirement of the session.
+
+Let $f\left( {{e_i}} \right)$ be the traffic load of the session on ${e_i}$, we have
+\begin{eqnarray} \label{eq2}
+f\left( {{e_i}} \right) = \sum\limits_{{e_i} \in {p_j},{p_j} \in \mathbb{P}} {{r_j}}
+\end{eqnarray}
+
+Then let ${\bf{F}} = {\left[ {f\left( {{e_1}} \right),...,f\left( {{e_{\left| E \right|}}} \right)} \right]^T}$ be the traffic load on all links in the network, we have
+\begin{eqnarray} \label{eq3}
+{{\bf{A}}_{new}} = {\bf{A}} - {\bf{F}} - {\bf{C}} \cdot {\bf{F}} \ge {\bf{0}}
+\end{eqnarray}
+
+\eqref{eq3} makes sure that the existing sessions will not be affected by the new session $(s,d)$.
+
+As mentioned above, we need to guarantee the quality of each path, so we set our optimization goal as minimizing the end-to-end delay of all paths, which is equal to minimizing the end-to-end delay of the worst path. The formulation of optimization goal is
+\begin{eqnarray} \label{eq4}
+\begin{array}{*{20}{c}}
+{{\rm{min}}}&{\mathop {{\rm{max}}}\limits_{{p_i} \in \mathbb{P}} \left\{ {Delay\left( {{p_i}} \right)} \right\}}
+\end{array}
+\end{eqnarray}
+
+$Delay\left( {{p_i}} \right)$ denotes the end-to-end delay of ${p_i}$. Since the expression of $Delay\left( {{p_i}} \right)$ can only be derived after multi-path discovery, we cannot solve the optimization problem. Instead, we use WCETT \cite{draves2004routing}, which is a routing metric commonly used in multi-radio multi-channel wireless mesh networks, to evaluate the quality of each path. WCETT not only considers packet loss rate and delay of each link on the path, but also accounts for the channel diversity of the path. In Section \ref{section: 4}, we propose a greedy-based multi-path discovery algorithm using the WCETT metric.
+
+Since we have discovered multiple paths with enough bandwidth, rate allocation needs to be completed. The performance of a session is greatly influenced by the residual bandwidth on links used by this session. If a link has no residual bandwidth, it becomes a bottleneck link and the packets being transmitted on this link will experience high queueing delay due to the congestion on the link. Network congestion not only affects the performance of sessions traveling through the congested area, but also decreases the achievable capacity of the network. Therefore, we set the objective of rate allocation as minimizing the network congestion. We formulate rate allocation as a max-min problem as follows
+\begin{eqnarray} \label{eq5}
+\begin{array}{*{20}{c}}
+{{\rm{max}}}&{\mathop {{\rm{min}}}\limits_{_{{e_i} \in \mathbb{P}}} \left\{ {{a_{new}}\left( {{e_i}} \right)} \right\}}
+\end{array}
+\end{eqnarray}
+
+Constraints are expressed in \eqref{eq1} and \eqref{eq3}.
+%\begin{figure}[h]
+%\centering
+%\label{system model}
+%\includegraphics[scale=0.48]{figure/systemmodel.pdf}
+%\hspace{1em}
+%\centering
+%\caption{Infrastructure/Backbone WMNs}
+%\end{figure}
+
+\section{joint multi-path discovery and rate allocation algorithm}
+\label{section: 4}
+In this section, we propose our heuristic joint multi-path discovery and rate allocation algorithm, as illustrated in Algorithm \ref{algo:1}.
+\subsection{Multi-path Discovery}
+Each node in the network can acquire the information of the links connected to itself, such as link weights or residual bandwidth. We assume that each node periodically propagate the information of its neighboring links to other nodes in the network, as described in \cite{draves2004routing}. Then each node has the information of all links in the network, such as link weights or residual bandwidth, which is ${\bf{A}} = {\left[ {a\left( {{e_1}} \right),...,a\left( {{e_{\left| E \right|}}} \right)} \right]^T}$. Therefore, it is possible to design a multi-path routing algorithm based on global information.
+
+Our multi-path discovery algorithm is a greedy-based algorithm and runs in an iterative way. Since our goal is to find high-quality paths, we discover one path with the highest quality and compute the maximum available bandwidth of the path in each iteration. Then, we update the residual bandwidth of all links according to \eqref{eq3}. Since congestion control is one of our objectives, we try to find multiple paths even when one path can support the session. We set a threshold $N$ and try to find $N$ paths for each session. Assume that we have found $m$ paths and no more feasible paths can be discovered. If the $m$ paths discovered cannot support the session, the session will be blocked so that the performance of other existing sessions will not be affected. If the number of paths discovered is less than $N$ but can satisfy the bandwidth demand of the session, the iteration will be continued until $N$ paths are discovered or no more feasible paths can be found.
+
+Consider a video streaming session $(s,d)$ with bandwidth demand $D$. Let $\mathbb{P}$ and $\mathbb{R}$ be the solution of our algorithm. Initially, $\mathbb{P} = \emptyset $, $\mathbb{R} = \emptyset $. As mentioned in Section \ref{section: 3}, we use WCETT as routing metric in our multi-path discovery algorithm to evaluate the path quality. In each iteration, we find the best path with the minimum WCETT. Denote the best path as ${{p^*}}$ and the corresponding WCETT as $WCETT\left( {{p^*}} \right)$. Since WCETT is not an isotonic routing metric, the Bellman-Ford or Dijkstra's algorithm may not find the path with the minimum WCETT. Therefore, we perform a breadth-first search (BFS) from source $s$ to destination $d$ in each iteration to find the best path ${{p^*}}$. In order to reduce search space and due to the truth that we prefer a path with small hop-count, we set a threshold of hop count $H$ ($H$ is set to 8 in our simulations). In our BFS algorithm, we do not search the links which have no residual bandwidth or have interfering links which have no residual bandwidth.
+
+Then we compute the maximum bandwidth of ${{p^*}}$ based on \eqref{eq3}, denoted as $B\left( {{p^*}} \right)$. $B\left( {{p^*}} \right)$ represents the maximum throughput that can travel through ${{p^*}}$. Let $D = D - B\left( {{p^*}} \right)$ be the residual bandwidth demand. We add ${{p^*}}$ into $\mathbb{P}$, then we update ${\bf{A}}$ based on \eqref{eq3}. By calculating the maximum bandwidth of ${{p^*}}$ in each iteration and update ${\bf{A}}$ correspondingly, we can keep the inter-flow interference of the discovered multiple paths within a low level. The iteration ends when the residual bandwidth demand is less than zero and the number of discovered paths is $N$ or no more new paths can be found. At the end of the iteration, if the residual bandwidth demand is still larger than zero, the session will be blocked.
+
+\subsection{Rate Allocation}
+After multiple paths have been discovered based on the proposed multi-path discovery algorithm, we can perform congestion control on the paths by rate allocation.
+
+In Section \ref{section: 3}, we formulate rate allocation as a max-min optimization problem. However, it can be transformed to a linear programming problem. We introduce a scalar $\nu  \ge 0$ which has
+\begin{eqnarray} \label{eq6}
+\nu  \cdot {\bf{e}} \le {\bf{A}} - {\bf{F}} - {\bf{C}} \cdot {\bf{F}}
+\end{eqnarray}
+where ${\bf{e}}$ is a vector of all ones.
+
+We use matrix $\bf{P}$ to represent the paths and vector ${\bf{R}} = \left[ {{r_1},...,{r_m}} \right]$ to represent the rate allocated on the paths, where ${r_i}$ denotes the allocated rate on ${p_i}$. ${\bf{P}}\left( {i,j} \right) = 1$ if link ${e_i}$ is in path ${p_j}$ and ${\bf{P}}\left( {i,j} \right) = 0$ if not. Then we have
+\begin{eqnarray} \label{eq7}
+{\bf{F}} = \bf{P} \cdot \bf{R}
+\end{eqnarray}
+
+The max-min problem of \eqref{eq5} can be transformed to a linear programming problem, which can be solved in polynomial time. The formulation of the LP problem is
+\begin{eqnarray} \label{eq8}
+\begin{array}{*{20}{c}}
+{\rm{max}}&\nu
+\end{array}
+\end{eqnarray}
+\begin{eqnarray} \label{eq9}
+\begin{array}{*{20}{c}}
+{s.t.{\rm{ }}}&{\left( {\begin{array}{*{20}{c}}
+{\left( {\bf{I} + {\bf{C}}} \right) \cdot \bf{P}}&\bf{e}\\
+{{\bf{e}^T}}&0
+\end{array}} \right)\left( \begin{array}{l}
+\bf{R}\\
+\nu
+\end{array} \right)\begin{array}{*{20}{c}}
+ \le \\
+ =
+\end{array}\left( \begin{array}{l}
+{\bf{A}}\\
+D
+\end{array} \right)}
+\end{array}
+\end{eqnarray}
+\begin{eqnarray} \label{eq10}
+\left( \begin{array}{l}
+\bf{R}\\
+\nu
+\end{array} \right) \ge \bf{0}
+\end{eqnarray}
+
+By combining the greedy-based multi-path discovery algorithm and the solution to the LP problem of \eqref{eq8}-\eqref{eq10}, we have our joint multi-path discovery and rate allocation algorithm.
+
+\begin{algorithm}
+\DontPrintSemicolon % Some LaTeX compilers require you to use \dontprintsemicolon instead
+\KwIn{${\bf{C}}$, ${\bf{A}}$, $D$}
+\KwOut{$\mathbb{P}$, $\mathbb{R}$}
+\textbf{Initialize:} $ \mathbb{P} = \emptyset $, $\mathbb{R} = \emptyset $\;
+\While{$D \ge 0$ or $\left| \mathbb{P} \right| < N$} {
+    Find the best path ${{p^*}}$ with the minimum WCETT using breadth-first search algorithm\;
+    \If{no feasible path}{\textbf{Break}}
+    Compute the maximum bandwidth of ${{p^*}}$, $B\left( {{p^*}} \right)$ based on \eqref{eq3}\;
+    $\mathbb{P} = \mathbb{P} \cup \left\{ {{p^*}} \right\}$, $D = D - B\left( {{p^*}} \right)$\;
+    ${{\bf{A}}} = {\bf{A}} - {\bf{F}} - {\bf{C}} \cdot {\bf{F}} \ge {\bf{0}}$\;
+}
+\If{$D > 0$}{No feasible results.}
+\Else{Rate Allocation: Solve the LP problem of \eqref{eq8}-\eqref{eq10}\;\Return{$\mathbb{P}$, $\mathbb{R}$}.\;}
+\caption{Joint Multi-path Discovery and Rate Allocation}
+\label{algo:1}
+\end{algorithm}
+\subsection{Discussion}
+\label{subsection:4-3}
+After the multi-path discovery and rate allocation of a session, the bandwidth on the multiple paths needs to be reserved. However, it is possible that new sessions arrive at almost the same time. Moreover, since we implement WCETT in our ns-2 simulations according to \cite{draves2004routing}, the ETT of all links in the network gets updated every 10 seconds. If two sessions arrive during a 10 seconds interval, they may not have the right knowledge of the current network status. In our simulations, we set the interval between starting time of one session and its next to 10 seconds to avoid the case. We will take this into consideration in our later work.
+%Currently, our algorithm runs in a centralized way, which is not practical in a real wireless mesh network. We also plan to design a distributed algorithm later to make it feasible to implement our algorithm in practice.
+\section{Performance Evaluation}
+\label{section: 5}
+In this section, we evaluate the performance of our joint multi-path discovery and rate allocation algorithm based on ns-2 simulations.
+\subsection{Simulation Setup}
+\label{section:5-1}
+Firstly, we modified ns-2 based on \cite{calvo2007adding} to support simulations of multi-radio multi-channel wireless mesh networks. And WCETT is implemented in our simulations according to \cite{draves2004routing}. We consider a static multi-radio multi-channel wireless mesh network. The network size is $1200 \times 1200\, {{\rm{m}}^2}$ with 30 nodes randomly placed in it. The transmission range is set to $250\,{\rm{m}}$ and the interference rage is set to $550\,{\rm{m}}$. The number of interfaces per node is set to 3, and the number of non-overlapping orthogonal channels is set to 12 (corresponding to 802.11a). We statically assign channels to each interface of each node according to the channel assignment algorithm proposed in \cite{subramanian2008minimum}. 802.11 is used as MAC with data rate set to 11 Mbps. UDP protocol is used for data packet transmission with the packet size set to 1000 Bytes.
+
+We use the constant bit rate (CBR) model to generate 50 flows in the simulation. Each flow is generated with a randomly selected source-destination pair and the bandwidth requirement of each flow is set to 200 Kbps. Since the ETT of each link gets updated every 10 seconds, we set the interval between the starting time of any two adjacent flows to 10 seconds to avoid the situation described in Section \ref{subsection:4-3}. We run the simulations on 10 different random topologies using the same configuration.
+
+%The detailed description of simulation setup is listed in table \ref{section: 3} below.
+%\begin{table}[htbp]
+%\footnotesize
+%\renewcommand\arraystretch{1}
+%\begin{center}
+%\caption{\label{tab:test}Simulation Parameters}
+%\begin{tabular}{c|c}
+%\toprule
+%\hline
+%Parameters  & Value \\  \hline
+%  Number of nodes & 60  \\
+%  area & $1500 \times 1500$m \\
+%  packet size &2Kb  \\
+%  data rate &2Mb/s  \\
+%  Interval of packet generation&200ms  \\
+%  cluster size &1,2,3,4,5,6,7  \\
+%  communication distance of omnidirectional antennas &500m  \\
+%  communication distance of directional antennas &1100m  \\
+%  simulation time &15s  \\
+%\hline
+%\bottomrule
+%\end{tabular}
+%\end{center}
+%\end{table}
+
+We compare the following methods of path discovery for routing in our simulations.
+\begin{enumerate}[1)]
+\item \emph{multi-path (WCETT)}: use WCETT as routing metric in our multi-path discovery algorithm.
+\item \emph{multi-path (ETT)}: use ETT as routing metric in our multi-path discovery algorithm. ETT does not take channel diversity of paths into account.
+\item \emph{interference-free}: find multiple paths which do not interfere with each other, corresponding to the \emph{MIDP} problem in \cite{ding2012multisource}.
+\item \emph{edge-disjoint}: find multiple paths which are edge-disjoint. Edge-disjointness is a common constraint for multi-path routing in previous studies.
+\item \emph{single-path}: find a single path for each session. Therefore, there is no need for rate allocation.
+\end{enumerate}
+
+\subsection{Simulation Results}
+\subsubsection{Network Capacity}
+Since admission control is performed in our multi-path discovery algorithm, we admit a flow when it can find multiple paths to provide enough bandwidth and block a flow when its bandwidth requirement cannot be satisfied. As described in Section \ref{section:5-1}, a new flow was introduced into the network every 10 seconds and a total of 50 flows was introduced. Fig. \ref{number} shows the number of admitted flows of different methods. Fig. \ref{throughput} shows the variation of throughput during simulation time. At the end of simulation time, it is almost impossible for a new flow to be admitted in our simulation. Therefore, the two performance metrics reveal the network capacity of different path discovery methods.
+
+From Fig. \ref{throughput}, we can observe that before 200s, different methods perform almost the same because the network is not congested yet. Then, as the number of concurrent sessions in the network increases, some links become congested, the performance of different methods starts to show difference. Fig. \ref{number} and Fig. \ref{throughput} show that at the end of the simulation, our proposed greedy-based multi-path discovery algorithm, denoted as \emph{multi-path (WCETT)}, performs the best by supporting nearly 40 flows and 8 Mbps throughput, which indicates higher network capacity than other methods. It is also observed that there is only slight difference between the performance of \emph{multi-path (WCETT)} and \emph{multi-path (ETT)}. This indicates that using different routing metrics in our algorithm may have little influence on the network capacity. However, different routing metrics have great impact on the performance of each flow, such as end-to-end delay, which will be shown later in the paper.
+
+Since \emph{single-path} only tries to find one path for each session, when the maximum bandwidth of the discovered path cannot support the session, the session will be blocked. Therefore, \emph{single-path} performs the worst by supporting nearly 29 flows and 6 Mbps throughput. \emph{interference-free} and \emph{edge-disjoint} work better than \emph{single-path} and worse than \emph{multi-path (WCETT)}, \emph{multi-path (ETT)} by supporting about 35 flows and 7 Mbps throughput. They take advantage of the network capacity improvement by using multi-radio multi-channel technology, but the efficiency is worse than our algorithm.
+
+The results above indicate that multi-path routing can significantly improve the network capacity compared with single-path routing in multi-radio multi-channel wireless mesh networks. However, the conventional constraints of multi-path routing, such as edge-disjointness or interference-free, are inefficient for multi-path routing in MRMC WMN.
+
+\subsubsection{End-to-End Delay}
+Fig. \ref{delay} illustrates the average end-to-end delay over all admitted flows during simulation time. Video streaming applications are delay-sensitive, which makes end-to-end delay an important performance metric as well as throughput.
+
+From Fig. \ref{delay}, we can observe that \emph{single-path} has a relatively low end-to-end delay. This is due to the low throughput \emph{single-path} supports. The same reason applies to \emph{interference-free} and \emph{edge-disjoint}. It is also observed that \emph{multi-path (WCETT)} always has a smaller end-to-end delay than \emph{multi-path (ETT)}. And with the number of concurrent sessions increasing, the difference between the average end-to-end delay experienced by all flows using \emph{multi-path (WCETT)} and \emph{multi-path (ETT)} increases, while the throughput supported by them keep within a tiny difference. It reveals that routing metrics which consider the channel diversity of paths perform better in multi-radio multi-channel wireless mesh networks.
+
+We also observe that \emph{interference-free} and \emph{single-path} experience very close end-to-end delay while \emph{interference-free} supports about 1 Mbps more throughput than \emph{single-path}. \emph{interference-free} even have smaller end-to-end delay than \emph{single-path} while supporting more throughput from 250s to 450s. This is due to congestion control accomplished by rate allocation. Congestion control allows more flows into the network with slight increasement of the average delay of each link. Fig. \ref{delay} also illustrates that \emph{interference-free} experiences a smaller end-to-end delay than \emph{edge-disjoint}. This is because \emph{interference-free} finds multiple paths which do not interfere with each other, while \emph{edge-disjoint} cannot ensure there is no inter-flow interference.
+
+Simulation results demonstrate that our proposed joint multi-path discovery and rate allocation algorithm not only increases the network capacity by supporting more throughput, but also takes the end-to-end delay of each flow into consideration.
+
+%\begin{figure}
+%\centering
+%\subfigure[]{
+%\begin{minipage}[t]{0.5\textwidth}
+%\centering
+%\includegraphics[width=1\textwidth]{figure/throughput.pdf}
+%\end{minipage}
+%\label{throughput}
+%}
+%\subfigure[]{
+%\begin{minipage}[t]{0.5\textwidth}
+%\centering
+%\includegraphics[width=1\textwidth]{figure/delay.pdf}
+%\end{minipage}
+%\label{delay}
+%}
+%\caption{Variation of throughput and end-to-end delay during simulation. (a) Throughput, (b) End-to-End Delay}
+%\label{result}
+%\end{figure}
+\section{Conclusion}
+\label{section: 6}
+In this paper, we propose a joint multi-path discovery and rate allocation algorithm to implement multi-path routing for video streaming in multi-radio multi-channel wireless mesh networks. Firstly, we propose a greedy-based multi-path discovery algorithm to find multiple paths for video streaming sessions. It not only considers the inter-flow interference among different paths, but also can find more potential paths by relaxing the constraints such as interference-free or edge-disjointness. Then we formulate a max-min optimization problem and transform it to a LP problem to solve rate allocation with the objective of congestion control. Simulation results indicate that our joint multi-path discovery and rate allocation algorithm can increase the network capacity by supporting more concurrent video streaming sessions while maintaining their quality of service.
+
+%\section*{Acknowledgement}
+%
+%
+%\thanks{Bo Liu is the corresponding author.}
+%\thanks{This work was supported in part by the National Natural Science Foundation of China (61221001, 61201222, 61471236, 61420106008), the 111 Project (B07022), the Shanghai Key Laboratory of Digital Media Processing, and New Century Excellent Talents, Ministry of Education of China (NCET-12-0359).}
+%\cite{akyildiz2005wireless}
+%\cite{iamnitchi2011small}
+%\cite{lin2010socionet}
+%\cite{luk2009opportunistic}
+%\cite{capone2008joint}
+%\cite{hespanha2004efficient}
+%\cite{salton1989automatic}
+%\cite{watts1998collective}
+%\cite{lin2007enabling}
+%\begin{thebibliography}{99}
+%
+%\bibitem{1}
+%Akyildiz I F, Wang X, Wang W. Wireless mesh networks: a survey[J]. Computer networks, 2005, 47(4): 445-487.
+%\bibitem{2}
+%Iamnitchi A, Ripeanu M, Santos-Neto E, et al. The small world of file sharing[J]. Parallel and Distributed Systems, IEEE Transactions on, 2011, 22(7): 1120-1134. 2011.
+%\bibitem{3}
+%Lin K C J, Wang C P, Chou C F, et al. Socionet: A social-based multimedia access system for unstructured p2p networks[J]. Parallel and Distributed Systems, IEEE Transactions on, 2010, 21(7): 1027-1041.
+%\bibitem{4}
+%Luk C P, Lau W C, Yue O C. Opportunistic routing with directional antennas in wireless mesh networks[C]//INFOCOM 2009, IEEE. IEEE, 2009: 2886-2890.
+%\bibitem{5}
+%Capone A, Filippini I, Martignon F. Joint routing and scheduling optimization in wireless mesh networks with directional antennas[C]//Communications, 2008. ICC'08. IEEE International Conference on. IEEE, 2008: 2951-2957.
+%\bibitem{6}
+%Hespanha J P. An efficient matlab algorithm for graph partitioning[J]. Dept. Elect. Comput. Eng., Univ. California, Santa Barbara, CA, USA, Tech. Rep, 2004.
+%\bibitem{7}
+%Salton G. Automatic Text Processing: The Transformation, Analysis, and Retrieval of Information by Computer[M]. Addison-Wesley, 1989.
+%\bibitem{8}
+%Watts D J, Strogatz S H. Collective dynamics of ¡®small-world¡¯networks[J]. nature, 1998, 393(6684): 440-442.
+%\bibitem{9}
+%Lin C J, Tsai S C, Chang Y T, et al. Enabling Keyword Search and Similarity Search in Small-World-based P2P Systems[C]//Computer Communications and Networks, 2007. ICCCN 2007. Proceedings of 16th International Conference on. IEEE, 2007: 115-120.
+%\end{thebibliography}
+
+\bibliographystyle{IEEEtran}
+\bibliographystyle{plain}
+\bibliography{citation}
+
+\end{document}
